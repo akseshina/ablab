@@ -7,7 +7,7 @@ library(cluster)
 library(e1071)
 
 
-# create data frame with tetranucleotide frequencyˇand other features
+# create data frame with tetranucleotide frequency and other features
 read_data <- function(path_to_data){
   seqs <- readDNAStringSet(path_to_data, format="fasta", use.names=TRUE)
   
@@ -45,6 +45,7 @@ read_data <- function(path_to_data){
   dimensions$coverage <- coverage
   dimensions$GC_content <- GC_content
   dimensions$seq_length <- seq_length
+  dimensions$seq_name <- seqs@ranges@NAMES
   return(dimensions)
 }
 
@@ -71,7 +72,7 @@ plot_coverage_density <- function(cur_data){
 
 # draw plot which shows coverage on first two principal components
 plot_rainbow_coverage <- function(cur_data) {
-
+  
   cur_pca <- PCA(cur_data[,1:136], scale.unit=TRUE, ncp=2, graph = F)
   
   coord <- cur_pca$ind$coord[,c(1,2)]
@@ -82,12 +83,12 @@ plot_rainbow_coverage <- function(cur_data) {
   assign("pl1", qplot(Dim.1, Dim.2, data=coord, colour = log(cover)) 
          + scale_colour_gradientn(colours = rainbow(7)) 
          + theme(panel.background=element_rect(fill="black")))
- 
+  
   coord <- coord[order(coord$cover, decreasing=TRUE), ]
   assign("pl2", qplot(Dim.1, Dim.2, data=coord, colour = log(cover)) 
          + scale_colour_gradientn(colours = rainbow(7)) 
          + theme(panel.background=element_rect(fill="black")))
- 
+  
   png(filename="coverage_on_pc.png", width=1000, height=450)
   grid.arrange(pl1, pl2, ncol=2)
   dev.off()
@@ -131,6 +132,7 @@ read_pc <- function(data) {
   coord_temp$coverage <- data$coverage
   coord_temp$GC_content <- data$GC_content
   coord_temp$seq_length <- data$seq_length
+  coord_temp$name <- data$seq_name
   
   return(coord_temp)
 }
@@ -165,7 +167,7 @@ add_clusterization <- function(data, method, num_of_cl, num_of_pc) {
 
 
 plot_cluster_solution <- function(cur_data, name) {
-
+  
   assign("pl1", qplot(Dim.1, Dim.2, data=cur_data, colour = cluster) 
          + scale_colour_gradientn(colours = rainbow(7)) 
          + theme(panel.background=element_rect(fill="black")))
