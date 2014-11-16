@@ -1,0 +1,8 @@
+source('~/my_scripts/basic_functions.R')
+
+raw_data <- read_data('/smallnas/akorobeynikov/algorithmic-biology/assembler/black-cyano/contigs.fasta')
+my_data <- length_filter(raw_data, 800)
+
+"13.35% of total length were removed"
+
+

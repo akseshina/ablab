@@ -20,8 +20,7 @@ read_data <- function(path_to_data){
   coverage <- as.numeric(lapply(seq_names,FUN=function(x){x[6]}))
   
   # find tetranucleotide frequency
-  tetra_nucl_fr <- oligonucleotideFrequency(seqs, width=4, as.prob=TRUE)
-  tetra_nucl_fr <- as.data.frame(tetra_nucl_fr)
+  tetra_nucl_fr <- as.data.frame(oligonucleotideFrequency(seqs, width=4, as.prob=TRUE))
   s <- colnames(tetra_nucl_fr)
   flag <- rep(TRUE, 256)
   for (i in 1:256) {  # join reverse complement columns together
@@ -41,12 +40,13 @@ read_data <- function(path_to_data){
   # find length of contigs
   seq_length <- as.numeric(seqs@ranges@width)
   
-  dimensions <- tetra_nucl_fr
-  dimensions$coverage <- coverage
-  dimensions$GC_content <- GC_content
-  dimensions$seq_length <- seq_length
-  dimensions$seq_name <- seqs@ranges@NAMES
-  return(dimensions)
+  df <- data.frame(tetra_nucl=tetra_nucl_fr,
+                           coverage, 
+                           GC_content, 
+                           seq_length,
+                           seq_name=seqs@ranges@NAMES)
+  
+  return(df)
 }
 
 
@@ -55,7 +55,7 @@ length_filter <- function(cur_data, max_length) {
   total_length1 <- sum(cur_data$seq_length)
   cur_data <- subset(cur_data, seq_length > max_length)
   total_length2  <- sum(cur_data$seq_length)
-  print(paste(round(100*(total_length1-total_length2)/total_length1, 2), "% of total length were removed", sep=""))
+  cat(paste(round(100*(total_length1-total_length2)/total_length1, 2), "% of total length were removed", sep=""))
   return(cur_data)
 }
 
@@ -96,7 +96,7 @@ plot_rainbow_coverage <- function(cur_data) {
 
 
 # count number of clusters by mclust on GC-content and plot results
-mclust_gc <- function(cur_data) {
+gc_content_mclust <- function(cur_data) {
   png(filename="GC_mclust.png", width=500, height=450)
   coord <- cur_data$GC_content
   fit <- Mclust(coord)
