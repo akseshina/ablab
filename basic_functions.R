@@ -7,9 +7,10 @@ library(cluster)
 library(e1071)
 
 
-# create data frame with tetranucleotide frequency and other features
-read_data <- function(path_to_data){
+# get information from FASTA file of assembly
+assembly_data <- function(path_to_data, max_length){
   seqs <- readDNAStringSet(path_to_data, format="fasta", use.names=TRUE)
+  seqs <- seqs[as.numeric(seqs@ranges@width) > max_length]
   
   # find GC content
   a_fr = alphabetFrequency(seqs, baseOnly=TRUE, as.prob=TRUE)
@@ -35,28 +36,23 @@ read_data <- function(path_to_data){
         tetra_nucl_fr[,s2] <- NULL
       }
     }
-  }  
+  }
   
   # find length of contigs
   seq_length <- as.numeric(seqs@ranges@width)
   
-  df <- data.frame(tetra_nucl=tetra_nucl_fr,
-                           coverage, 
-                           GC_content, 
-                           seq_length,
-                           seq_name=seqs@ranges@NAMES)
+  # turn tetranucleotide frequency into primary components
+  cur_pca <- PCA(tetra_nucl_fr, scale.unit=TRUE, ncp=30, graph = F)
+  coord_pca<- as.data.frame(cur_pca$ind$coord[])
   
-  return(df)
-}
-
-
-# remove short contigs from data
-length_filter <- function(cur_data, max_length) {
-  total_length1 <- sum(cur_data$seq_length)
-  cur_data <- subset(cur_data, seq_length > max_length)
-  total_length2  <- sum(cur_data$seq_length)
-  cat(paste(round(100*(total_length1-total_length2)/total_length1, 2), "% of total length were removed", sep=""))
-  return(cur_data)
+  object <- list(tetra_nucl=tetra_nucl_fr,
+                 coord_pca=coord_pca,
+                 coverage=coverage, 
+                 GC_content=GC_content, 
+                 seq_length=seq_length,
+                 seq_name=seqs@ranges@NAMES)
+  class(object) <- "assembly_data"
+  return (object)
 }
 
 
@@ -73,10 +69,7 @@ plot_coverage_density <- function(cur_data){
 # draw plot which shows coverage on first two principal components
 plot_rainbow_coverage <- function(cur_data) {
   
-  cur_pca <- PCA(cur_data[,1:136], scale.unit=TRUE, ncp=2, graph = F)
-  
-  coord <- cur_pca$ind$coord[,c(1,2)]
-  coord <- as.data.frame(coord)
+  coord <- cur_data$coord_pca
   coord$cover <- cur_data$coverage
   
   coord <- coord[order(coord$cover), ]
@@ -123,30 +116,16 @@ gc_content_mclust <- function(cur_data) {
 }
 
 
-# turn tetranucleotide frequency into primary components
-read_pc <- function(data) {
-  my_pca <- PCA(data[,1:136], scale.unit=TRUE, ncp=30, graph = F)
-  coord_temp <- my_pca$ind$coord[]
-  coord_temp <- as.data.frame(coord_temp)
+# return column with clusterization results
+add_clusterization <- function(cur_data, method, num_of_cl, num_of_pc) {
   
-  coord_temp$coverage <- data$coverage
-  coord_temp$GC_content <- data$GC_content
-  coord_temp$seq_length <- data$seq_length
-  coord_temp$name <- data$seq_name
-  
-  return(coord_temp)
-}
-
-
-# add column with clusterization results
-add_clusterization <- function(data, method, num_of_cl, num_of_pc) {
-  features <- data.frame(data[,"Dim.1"])  # WORK FOR RITA
+  features <- data.frame(cur_data$coord_pca[,"Dim.1"])  # WORK FOR RITA
   for (i in c(2: num_of_pc)) {
     s <- paste("Dim.", toString(i), sep="")
-    features[,s] <- data[,s]
+    features[,s] <- cur_data$coord_pca[,s]
   }
   
-  #features[,"coverage"] <- data[,"coverage"] 
+  #features[,"coverage"] <- cur_data$coverage
   #features <- scale(features)
   
   if (method == "mclust") {
@@ -166,28 +145,36 @@ add_clusterization <- function(data, method, num_of_cl, num_of_pc) {
 }
 
 
-plot_cluster_solution <- function(cur_data, name) {
+# draw plot on primary components with clusters colored differently
+plot_cluster_solution <- function(cur_data, name="") {
   
-  assign("pl1", qplot(Dim.1, Dim.2, data=cur_data, colour = cluster) 
-         + scale_colour_gradientn(colours = rainbow(7)) 
-         + theme(panel.background=element_rect(fill="black")))
+  pca_with_clusters <- data.frame(Dim.1=cur_data$coord_pca$Dim.1,
+                                  Dim.2=cur_data$coord_pca$Dim.2,
+                                  cluster=cur_data$cluster)
   
-  png(filename=paste("clusters_on_pc", name, ".png", sep=""), width=500, height=450)
-  grid.arrange(pl1, ncol=1)
-  dev.off()
+  qplot(Dim.1, Dim.2, data=pca_with_clusters, colour = cluster) +
+    scale_colour_gradientn(colours = rainbow(7)) +
+    theme(panel.background=element_rect(fill="black"))
+  
+  ggsave(filename=paste("clusters_on_pc", name, ".png", sep=""), 
+         width=5, height=4.5)
 }
 
 
-write_cluster_information <- function(cur_data, name) {
+# write clusters statistics to file
+write_cluster_information <- function(cur_data, name="") {
   
-  n = max(cur_data$cluster)
+  clusters <- data.frame(cluster=cur_data$cluster, 
+                         seq_length=cur_data$seq_length, 
+                         GC_content=cur_data$GC_content, 
+                         coverage=cur_data$coverage)  
   
-  sink(paste(name, ".txt", sep=""))
+  sink(paste("stats_", name, ".txt", sep=""))
   
-  for (i in c(1:n)) {
+  for (i in c(1:max(cur_data$cluster))) {
     cat("cluster", i, "\n")
     
-    cur_cluster <- subset(cur_data, cluster==i)
+    cur_cluster <- subset(clusters, cluster==i)
     
     cat(sum(cur_cluster$seq_length), "base pairs \n")
     
@@ -204,8 +191,10 @@ write_cluster_information <- function(cur_data, name) {
 }
 
 
-do_clusterization <- function(cur_pca, method, num_of_cl, num_of_pc) {
-  cur_pca$cluster <- add_clusterization(cur_pca, method, num_of_cl, num_of_pc)
-  plot_cluster_solution(cur_pca, paste("(", method, "_", num_of_cl, "_", num_of_pc, ")", sep=""))
-  write_cluster_information(cur_pca, paste(method, "_", num_of_cl, "_", num_of_pc, sep=""))
+# carry out a clusterization analysis with given parameters
+do_clusterization <- function(cur_data, method, num_of_cl, num_of_pc) {
+  cur_data$cluster <- add_clusterization(cur_data, method, num_of_cl, num_of_pc)
+  cur_name <- paste("(", method, "_", num_of_cl, "_", num_of_pc, ")", sep="")
+  plot_cluster_solution(cur_data, cur_name)
+  write_cluster_information(cur_data, cur_name)
 }
