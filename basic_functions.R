@@ -204,10 +204,8 @@ write_cluster_information <- function(cur_data, name) {
 }
 
 
-do_clusterization <- function(cur_data, method, num_of_cl, num_of_pc) {
-  cur_data <- read_pc(cur_data)
-  cur_data$cluster <- add_clusterization(cur_data, method, num_of_cl, num_of_pc)
-  plot_cluster_solution(cur_data, paste("(", method, "_", num_of_cl, "_", num_of_pc, ")", sep=""))
-  
-  write_cluster_information(cur_data, paste(method, "_", num_of_cl, "_", num_of_pc, sep=""))
+do_clusterization <- function(cur_pca, method, num_of_cl, num_of_pc) {
+  cur_pca$cluster <- add_clusterization(cur_pca, method, num_of_cl, num_of_pc)
+  plot_cluster_solution(cur_pca, paste("(", method, "_", num_of_cl, "_", num_of_pc, ")", sep=""))
+  write_cluster_information(cur_pca, paste(method, "_", num_of_cl, "_", num_of_pc, sep=""))
 }
