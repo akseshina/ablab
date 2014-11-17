@@ -10,7 +10,12 @@ library(e1071)
 # get information from FASTA file of assembly
 assembly_data <- function(path_to_data, max_length){
   seqs <- readDNAStringSet(path_to_data, format="fasta", use.names=TRUE)
+  total_length1 <- sum(as.numeric(seqs@ranges@width))
   seqs <- seqs[as.numeric(seqs@ranges@width) > max_length]
+  total_length2  <- sum(as.numeric(seqs@ranges@width))
+  cat(paste(round(100*(total_length1-total_length2)/total_length1, 2), 
+            "% of total length was removed \n", sep=""))
+  
   
   # find GC content
   a_fr = alphabetFrequency(seqs, baseOnly=TRUE, as.prob=TRUE)
@@ -136,6 +141,7 @@ add_clusterization <- function(cur_data, method, num_of_cl, num_of_pc) {
     d <- dist(features, method = "euclidean") # distance matrix
     fit <- hclust(d, method="ward")
     cluster <- cutree(fit, k=num_of_cl) # cut tree into n clusters
+    print(cluster)
     return(cluster)
     
   } else if (method == "pam") {
@@ -197,4 +203,11 @@ do_clusterization <- function(cur_data, method, num_of_cl, num_of_pc) {
   cur_name <- paste("(", method, "_", num_of_cl, "_", num_of_pc, ")", sep="")
   plot_cluster_solution(cur_data, cur_name)
   write_cluster_information(cur_data, cur_name)
+}
+
+
+make_data_analysis <- function(cur_data) {
+  plot_coverage_density(cur_data)
+  plot_rainbow_coverage(cur_data)
+  gc_content_mclust(cur_data)
 }

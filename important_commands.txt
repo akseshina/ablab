@@ -1,11 +1,28 @@
+rm(list=ls()) #will remove ALL objects 
+
 source('~/my_scripts/basic_functions.R')
 
-raw_data <- read_data('/smallnas/akorobeynikov/algorithmic-biology/assembler/black-cyano/contigs.fasta')
-my_data <- length_filter(raw_data, 800)
+my_data <- assembly_data('/smallnas/akorobeynikov/algorithmic-biology/assembler/black-cyano/contigs.fasta', 800)
+
+my_cluster <- assembly_data('/home/novitskayam/cluster1/cluster1_new_contigs.fasta/contigs.fasta', 800)
 
 
 
 
+
+-------------------------------------------------------------------------------------------------------------
+python my_scripts/filter_contigs.py black-cyano cluster1_2/list_not_cyano.txt cluster1_2/not_cyano_contigs.fasta
+diff -a --suppress-common-lines -y cluster1_2/not_cyano_contigs.fasta not_cyano.fasta >> cluster1_2/diff.txt
+bowtie2-build ~/cluster1_2/not_cyano_contigs.fasta not_cyano
+bowtie2 -p 32 -x not_cyano -1 /home/novitskayam/cluster1/Lena_S1_L001_R1_001.fastq -2 /home/novitskayam/cluster1/Lena_S1_L001_R2_001.fastq -S all.sam
+
+java -Xmx4g 
+java -jar ~/tools/picard-tools-1.119/SortSam.jar INPUT=all.sam OUTPUT=all_sorted.sam SORT_ORDER=queryname
+java -jar ~/tools/picard-tools-1.119/FilterSamReads.jar INPUT=all_sorted.sam FILTER=excludeAligned OUTPUT=cyano.sam
+java -jar ~/tools/picard-tools-1.119/SamToFastq.jar INPUT=cyano.sam FASTQ=cyano_R1.fastq SECOND_END_FASTQ=cyano_R2.fastq
+
+
+samtools view -f 4 all_sorted.sam -c
 
 -------------------------------------------------------------------------------------------------------------
 cd ~/my_scripts
