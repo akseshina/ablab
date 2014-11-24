@@ -23,6 +23,7 @@ java -jar ~/tools/picard-tools-1.119/SamToFastq.jar INPUT=cyano.sam FASTQ=cyano_
 
 
 samtools view -f 4 all_sorted.sam -c
+samtools view -f 12 all_sorted.sam -S > fully_unmaped.sam
 
 -------------------------------------------------------------------------------------------------------------
 cd ~/my_scripts

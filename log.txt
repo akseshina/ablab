@@ -31,10 +31,10 @@ sum(cluster_others$coverage2 * cluster_others$seq_length)
 
 
 
-novitskayam@ace:~/cluster1_2$ samtools view -f 4 all_sorted.sam -c -S
-[samopen] SAM header is present: 25935 sequences.
-40671070
 novitskayam@ace:~/cluster1_2$ samtools view all_sorted.sam -c -S
 [samopen] SAM header is present: 25935 sequences.
 46079800
+novitskayam@ace:~/cluster1_2$ samtools view fully_unmaped.sam -c -S
+[samopen] no @SQ lines in the header.
+37412212
 
