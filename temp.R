@@ -35,3 +35,6 @@ temp <- as.matrix(temp)
 
 write(as.matrix(cluster_others$seq_name), file="list_not_cyano.txt")
 
+
+
+

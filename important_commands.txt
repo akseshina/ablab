@@ -14,16 +14,17 @@ my_cluster <- assembly_data('/home/novitskayam/cluster1/cluster1_new_contigs.fas
 python my_scripts/filter_contigs.py black-cyano cluster1_2/list_not_cyano.txt cluster1_2/not_cyano_contigs.fasta
 diff -a --suppress-common-lines -y cluster1_2/not_cyano_contigs.fasta not_cyano.fasta >> cluster1_2/diff.txt
 bowtie2-build ~/cluster1_2/not_cyano_contigs.fasta not_cyano
-bowtie2 -p 32 -x not_cyano -1 /home/novitskayam/cluster1/Lena_S1_L001_R1_001.fastq -2 /home/novitskayam/cluster1/Lena_S1_L001_R2_001.fastq -S all.sam
+bowtie2 -p 32 -x not_cyano -1 /Johnny/data/projects/Scripps.Cyanobacteria.Assembly/PAL81508-1/Lena_S1_L001_R1_001.fastq.gz -2 /Johnny/data/projects/Scripps.Cyanobacteria.Assembly/PAL81508-1/Lena_S1_L001_R2_001.fastq.gz -S all.sam
 
 java -Xmx4g 
 java -jar ~/tools/picard-tools-1.119/SortSam.jar INPUT=all.sam OUTPUT=all_sorted.sam SORT_ORDER=queryname
 java -jar ~/tools/picard-tools-1.119/FilterSamReads.jar INPUT=all_sorted.sam FILTER=excludeAligned OUTPUT=cyano.sam
 java -jar ~/tools/picard-tools-1.119/SamToFastq.jar INPUT=cyano.sam FASTQ=cyano_R1.fastq SECOND_END_FASTQ=cyano_R2.fastq
 
-
 samtools view -f 4 all_sorted.sam -c
 samtools view -f 12 all_sorted.sam -S > fully_unmaped.sam
+
+/home/novitskayam/tools/SPAdes/bin/spades.py -t 32 -1 /home/novitskayam/cluster1_3/cyano_R1_3.fastq -2 /home/novitskayam/cluster1_3/cyano_R2_3.fastq -o cyano_fum_assembly_3
 
 -------------------------------------------------------------------------------------------------------------
 cd ~/my_scripts
@@ -35,3 +36,13 @@ git push
 tmux ls
 tmux new -s myname
 tmux a -t myname
+tmux kill-session -t myname
+
+
+
+-------------------------------------------------------------------------------------------------------------
+/Johnny/data/projects/Scripps.Cyanobacteria.Assembly/PAL81508-1/Lena_S1_L001_R1_001.fastq.gz
+/Johnny/data/projects/Scripps.Cyanobacteria.Assembly/PAL81508-1/Lena_S1_L001_R2_001.fastq.gz
+
+
+/home/novitskayam/tools/SPAdes/bin/spades.py --continue -t 20 --pe1-1 /Johnny/data/input/Bacteria/R.sphaeroides/MiSeq/full/raw/SRR522246_1.fastq.gz --pe1-2 /Johnny/data/input/Bacteria/R.sphaeroides/MiSeq/full/raw/SRR522246_2.fastq.gz --pe2-1 /Johnny/data/input/Bacteria/E.coli/K12/Illumina150_MC/MiSeq_Ecoli_MG1655_110721_PF_R1.fastq.gz --pe2-2 /Johnny/data/input/Bacteria/E.coli/K12/Illumina150_MC/MiSeq_Ecoli_MG1655_110721_PF_R2.fastq.gz --pe3-1 ~/reads/B.faecium_left.fastq --pe3-2 ~/reads/B.faecium_right.fastq --pe4-1 ~/reads/L.gasseri_left.fastq --pe4-2 ~/reads/L.gasseri_right.fastq --pe5-1 /Johnny/data/input/Bacteria/B.cereus/Nextera_2x300/Bcereus_S1_L001_R1_001.fastq.gz --pe5-2 /Johnny/data/input/Bacteria/B.cereus/Nextera_2x300/Bcereus_S1_L001_R2_001.fastq.gz -o MyMetagenome4
