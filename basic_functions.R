@@ -7,15 +7,15 @@ library(cluster)
 library(e1071)
 
 
-# get information from FASTA file of assembly
-assembly_data <- function(path_to_data, max_length){
+# get and filter information from FASTA file of assembly
+assembly_data <- function(path_to_data, max_length=800){
   seqs <- readDNAStringSet(path_to_data, format="fasta", use.names=TRUE)
+  
   total_length1 <- sum(as.numeric(seqs@ranges@width))
   seqs <- seqs[as.numeric(seqs@ranges@width) > max_length]
   total_length2  <- sum(as.numeric(seqs@ranges@width))
   cat(paste(round(100*(total_length1-total_length2)/total_length1, 2), 
             "% of total length was removed \n", sep=""))
-  
   
   # find GC content
   a_fr = alphabetFrequency(seqs, baseOnly=TRUE, as.prob=TRUE)
@@ -104,7 +104,7 @@ gc_content_mclust <- function(cur_data) {
   colors <- sample(rainbow(n))  # different colors for clusters
   
   cur_hist <- hist(coord, plot=FALSE, breaks=100)
-  plot(cur_hist, xlab="GC-content")
+  plot(cur_hist, xlab="GC-content", main="")
   
   tu <- par('usr')
   par(xpd=FALSE)
@@ -210,4 +210,50 @@ make_data_analysis <- function(cur_data) {
   plot_coverage_density(cur_data)
   plot_rainbow_coverage(cur_data)
   gc_content_mclust(cur_data)
+}
+
+
+gcContent <-  
+
+
+# count number of clusters by mclust on GC-content and plot results
+gc_content <- function(path_to_data, max_length=800){
+  seqs <- readDNAStringSet(path_to_data, format="fasta", use.names=TRUE)
+  total_length1 <- sum(as.numeric(seqs@ranges@width))
+  seqs <- seqs[as.numeric(seqs@ranges@width) > max_length]
+  
+  all_windows <- function(curseq) {
+    n <- as.integer(length(seq(curseq)) / max_length)
+    res <- list(subseq(curseq, 1, max_length))
+    if (n==1)
+      return(res)
+    for (i in c(1:(n-1))) {
+      res <- c(res, subseq(curseq, start=(max_length*i+1), width=max_length))
+    }
+    return(res)
+  }
+  
+  subseqs <- unlist(sapply(seqs,  all_windows))
+  
+  # find GC content
+  GC_content = as.numeric(lapply(subseqs, function(x) {
+    alf <- alphabetFrequency(x, baseOnly=TRUE, as.prob=TRUE);
+    sum(alf[c("G","C")])
+  }))
+  
+  png(filename="GC_content.png", width=500, height=450)  
+  hist(GC_content, breaks=100, xlab="GC-content", ylab="number of windows with length 800", main="", col="blue")
+  dev.off()
+}
+
+
+
+scree_plot <- function(cur_data, dir="") {
+  png(filename=paste(dir, "scree_plot.png", sep = ""), res=72,
+      width=33, height=20, units="cm")
+  cur_pca <- PCA(cur_data$tetra_nucl, scale.unit=TRUE, ncp=2, graph = F)
+  barplot(cur_pca$eig[c(1:30),2], names.arg=c(1:30), 
+          main="Scree plot", xlab="number of primary components", ylab="% of variance")
+  dev.off()
+  
 }
