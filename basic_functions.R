@@ -5,6 +5,8 @@ library(gridExtra)
 library(mclust)
 library(cluster)
 library(e1071)
+library(elasticnet)
+library(kernlab)
 
 
 # get and filter information from FASTA file of assembly
@@ -22,8 +24,10 @@ assembly_data <- function(path_to_data, max_length=800){
   GC_content = a_fr[,"C"] + a_fr[,"G"]
   
   # find coverage
-  seq_names <- strsplit(seqs@ranges@NAMES, "_", fixed=TRUE)
+  seq_names <- strsplit(paste(seqs@ranges@NAMES, '_NA', sep=''), "_", fixed=TRUE)
   coverage <- as.numeric(lapply(seq_names,FUN=function(x){x[6]}))
+  
+  organism <- unlist(lapply(seq_names, '[[', 9))
   
   # find tetranucleotide frequency
   tetra_nucl_fr <- as.data.frame(oligonucleotideFrequency(seqs, width=4, as.prob=TRUE))
@@ -55,7 +59,8 @@ assembly_data <- function(path_to_data, max_length=800){
                  coverage=coverage, 
                  GC_content=GC_content, 
                  seq_length=seq_length,
-                 seq_name=seqs@ranges@NAMES)
+                 seq_name=seqs@ranges@NAMES,
+                 organism=organism)
   class(object) <- "assembly_data"
   return (object)
 }
@@ -268,4 +273,32 @@ plot_rainbow_GC <- function(cur_data, dir="") {
   
   ggsave(filename=paste(dir, "GC-content_on_pc.png", sep=""), 
          width=5, height=4.5)  
+}
+
+
+# Multidimensional scaling
+plot_MDS <- function(cur_data, name="", dist_type="euclidean") {
+  
+  d <- dist(cur_data$tetra_nucl, method=dist_type)
+  fit <- cmdscale(d, k=2)
+  
+  df_to_draw <- data.frame(coordinate_1=fit[,1],
+                           coordinate_2=fit[,2],
+                           organism=cur_data$organism)
+  
+  qplot(coordinate_1, coordinate_2, data = df_to_draw, colour=organism)
+  
+  ggsave(filename=paste("MDS", name, ".png", sep=""), 
+         width=5, height=4.5)
+}
+
+
+# Kernel PCA
+plot_kernel_pca <- function(cur_data, name="") {
+  
+  kpc <- kpca(~.,data=cur_data$tetra_nucl, kernel="rbfdot", kpar=list(sigma=0.1), features=2)
+  qplot(pcv(kpc)[,1], pcv(kpc)[,2])
+  
+  ggsave(filename=paste("kPCA", name, ".png", sep=""), 
+         width=5, height=4.5)
 }

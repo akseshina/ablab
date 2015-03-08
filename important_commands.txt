@@ -8,7 +8,7 @@ my_cluster <- assembly_data('/home/novitskayam/cluster1/cluster1_new_contigs.fas
 
 
 
-
+cat *.txt >> sum.txt
 
 -------------------------------------------------------------------------------------------------------------
 python my_scripts/filter_contigs.py black-cyano cluster1_2/list_not_cyano.txt cluster1_2/not_cyano_contigs.fasta
