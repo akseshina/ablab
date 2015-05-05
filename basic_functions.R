@@ -7,6 +7,7 @@ library(cluster)
 library(e1071)
 library(elasticnet)
 library(kernlab)
+library(scatterplot3d)
 
 
 # get and filter information from FASTA file of assembly
@@ -24,7 +25,7 @@ assembly_data <- function(path_to_data, max_length=800){
   GC_content = a_fr[,"C"] + a_fr[,"G"]
   
   # find coverage
-  seq_names <- strsplit(paste(seqs@ranges@NAMES, '_NA', sep=''), "_", fixed=TRUE)
+  seq_names <- strsplit(paste(seqs@ranges@NAMES, '_NA_NA_NA_NA_NA_NA_NA_NA_NA', sep=''), "_", fixed=TRUE)
   coverage <- as.numeric(lapply(seq_names,FUN=function(x){x[6]}))
   
   organism <- unlist(lapply(seq_names, '[[', 9))
@@ -211,7 +212,7 @@ do_clusterization <- function(cur_data, method, num_of_cl, num_of_pc) {
 }
 
 
-# count number of clusters by mclust on GC-content and plot results
+# 
 gc_content <- function(path_to_data, max_length=800){
   seqs <- readDNAStringSet(path_to_data, format="fasta", use.names=TRUE)
   total_length1 <- sum(as.numeric(seqs@ranges@width))
@@ -242,7 +243,7 @@ gc_content <- function(path_to_data, max_length=800){
 }
 
 
-# 
+# draw scree plot about PCA
 scree_plot <- function(cur_data, dir="") {
   png(filename=paste(dir, "scree_plot.png", sep = ""), res=72,
       width=33, height=20, units="cm")
@@ -258,6 +259,8 @@ make_data_analysis <- function(cur_data) {
   plot_coverage_density(cur_data)
   plot_rainbow_coverage(cur_data)
   gc_content_mclust(cur_data)
+  scree_plot(cur_data)
+  plot_rainbow_GC(cur_data)
 }
 
 
@@ -288,17 +291,153 @@ plot_MDS <- function(cur_data, name="", dist_type="euclidean") {
   
   qplot(coordinate_1, coordinate_2, data = df_to_draw, colour=organism)
   
-  ggsave(filename=paste("MDS", name, ".png", sep=""), 
+  ggsave(filename=paste("MDS_", name, ".png", sep=""), 
          width=5, height=4.5)
 }
 
 
 # Kernel PCA
-plot_kernel_pca <- function(cur_data, name="") {
+plot_kernel_pca <- function(cur_data, name="", kernel_type="rbfdot", params=list()) {
   
-  kpc <- kpca(~.,data=cur_data$tetra_nucl, kernel="rbfdot", kpar=list(sigma=0.1), features=2)
-  qplot(pcv(kpc)[,1], pcv(kpc)[,2])
+  kpc <- kpca(~.,data=cur_data$tetra_nucl, kernel=kernel_type, kpar=params, features=2)
+
+  df_to_draw <- data.frame(component_1=pcv(kpc)[,1],
+                           component_2=pcv(kpc)[,2],
+                           organism=cur_data$organism)
   
-  ggsave(filename=paste("kPCA", name, ".png", sep=""), 
+  qplot(component_1, component_2, data = df_to_draw, colour=organism)
+  
+  ggsave(filename=paste("kPCA_", name, ".png", sep=""), 
          width=5, height=4.5)
+}
+
+
+#———————————————————————————————————————————————————————————————————————————
+
+
+# Multidimensional scaling in 3D
+plot_MDS_3D <- function(cur_data, name="", dist_type="euclidean") {
+  
+  d <- dist(cur_data$tetra_nucl, method=dist_type)
+  fit <- cmdscale(d, k=3)
+  
+  df_to_draw <- data.frame(coordinate_1=fit[,1],
+                           coordinate_2=fit[,2],
+                           coordinate_3=fit[,3],          
+                           organism=cur_data$organism)
+
+  png(filename=paste("MDS_", name, ".png", sep=""), 
+      width=600, height=450)
+  scatterplot3d(df_to_draw$coordinate_1, df_to_draw$coordinate_2, df_to_draw$coordinate_3,
+                pch=20, color=as.numeric(df_to_draw$organism))
+  dev.off()
+}
+
+
+#____________________
+plot_kPCA_3D <- function(cur_data, name="", angle=40) {
+  
+  kpc <- kpca(~.,data=as.data.frame(scale(cur_data$tetra_nucl)), kernel='laplacedot', kpar=list(sigma=1), features=3)
+  
+  df_to_draw <- data.frame(coordinate_1=pcv(kpc)[,1],
+                           coordinate_2=pcv(kpc)[,2],
+                           coordinate_3=pcv(kpc)[,3],
+                           organism=cur_data$organism)
+
+  # "pairs" let to manupulate normaly only this colors vector, so let's make it 
+  n <- max(as.numeric(df_to_draw$organism))
+  colors_set <- rainbow(n)
+  cols <- character(nrow(df_to_draw))  
+  for (i in c(1:n)) {
+    cols[as.numeric(df_to_draw$organism) == i] <- colors_set[i]
+    
+  }  
+  
+  png(filename=paste("kPCA_3D_", name, ".png", sep=""), 
+      width=600, height=450)
+  scatterplot3d(df_to_draw$coordinate_1, df_to_draw$coordinate_2, df_to_draw$coordinate_3,
+                pch=20, color=cols,
+                xlab="PC 1", ylab="PC 2", zlab="PC 3", angle=angle)
+  dev.off()
+}
+
+#________
+plot_kPCA_pairs <- function(cur_data, name="") {
+  
+  kpc <- kpca(~.,data=as.data.frame(scale(cur_data$tetra_nucl)), kernel='laplacedot', kpar=list(sigma=1), features=3)
+  
+  df_to_draw <- data.frame(coordinate_1=pcv(kpc)[,1],
+                           coordinate_2=pcv(kpc)[,2],
+                           coordinate_3=pcv(kpc)[,3],
+                           organism=cur_data$organism)
+  
+  # "pairs" let to manupulate normaly only this colors vector, so let's make it 
+  n <- max(as.numeric(df_to_draw$organism))
+  colors_set <- rainbow(n)
+  cols <- character(nrow(df_to_draw))  
+  for (i in c(1:n)) {
+    cols[as.numeric(df_to_draw$organism) == i] <- colors_set[i]
+    
+  }
+  
+  png(filename=paste("kPCA_pairs_", name, ".png", sep=""), 
+      width=600, height=450)
+  pairs(~coordinate_1+coordinate_2+coordinate_3, data=df_to_draw,
+        pch = 20, col=cols)
+  #par(xpd=TRUE)
+  #legend(0, 1, as.vector(unique(df_to_draw$organism)),  
+  #       fill=colors_set)
+  dev.off()
+}
+
+
+
+# 
+gc_content_mclust_2 <- function(path_to_data, max_length=800, name="") {
+  seqs <- readDNAStringSet(path_to_data, format="fasta", use.names=TRUE)
+  total_length1 <- sum(as.numeric(seqs@ranges@width))
+  seqs <- seqs[as.numeric(seqs@ranges@width) > max_length]
+  
+  all_windows <- function(curseq) {
+    n <- as.integer(length(seq(curseq)) / max_length)
+    res <- list(subseq(curseq, 1, max_length))
+    if (n==1)
+      return(res)
+    for (i in c(1:(n-1))) {
+      res <- c(res, subseq(curseq, start=(max_length*i+1), width=max_length))
+    }
+    return(res)
+  }
+  
+  subseqs <- unlist(sapply(seqs,  all_windows))
+  
+  # find GC content
+  GC_content = as.numeric(lapply(subseqs, function(x) {
+    alf <- alphabetFrequency(x, baseOnly=TRUE, as.prob=TRUE);
+    sum(alf[c("G","C")])
+  }))
+  
+  png(filename=paste(name, "_GC_mclust.png", sep=""), width=500, height=450)
+  coord <- GC_content
+  fit <- Mclust(coord)
+  cluster <- fit$classification
+  n <- fit$G
+  
+  colors <- sample(rainbow(n))  # different colors for clusters
+  
+  cur_hist <- hist(coord, plot=FALSE, breaks=100)
+  plot(cur_hist, xlab="GC-content", ylab=paste("number of windows with length ", max_length, sep=""), main="")
+  
+  tu <- par('usr')
+  par(xpd=FALSE)
+  temp_df <- as.data.frame(coord)
+  temp_df$cl <- cluster
+  
+  for (i in c(1:n)) {
+    tu1 <- min(subset(temp_df, cl==i)$coord)
+    tu2 <- max(subset(temp_df, cl==i)$coord)
+    clip(tu1, tu2, tu[3], tu[4])
+    plot(cur_hist, col=colors[i], add=TRUE)  # add color for cluster
+  }
+  dev.off()
 }

@@ -45,4 +45,30 @@ tmux kill-session -t myname
 /Johnny/data/projects/Scripps.Cyanobacteria.Assembly/PAL81508-1/Lena_S1_L001_R2_001.fastq.gz
 
 
-/home/novitskayam/tools/SPAdes/bin/spades.py --continue -t 20 --pe1-1 /Johnny/data/input/Bacteria/R.sphaeroides/MiSeq/full/raw/SRR522246_1.fastq.gz --pe1-2 /Johnny/data/input/Bacteria/R.sphaeroides/MiSeq/full/raw/SRR522246_2.fastq.gz --pe2-1 /Johnny/data/input/Bacteria/E.coli/K12/Illumina150_MC/MiSeq_Ecoli_MG1655_110721_PF_R1.fastq.gz --pe2-2 /Johnny/data/input/Bacteria/E.coli/K12/Illumina150_MC/MiSeq_Ecoli_MG1655_110721_PF_R2.fastq.gz --pe3-1 ~/reads/B.faecium_left.fastq --pe3-2 ~/reads/B.faecium_right.fastq --pe4-1 ~/reads/L.gasseri_left.fastq --pe4-2 ~/reads/L.gasseri_right.fastq --pe5-1 /Johnny/data/input/Bacteria/B.cereus/Nextera_2x300/Bcereus_S1_L001_R1_001.fastq.gz --pe5-2 /Johnny/data/input/Bacteria/B.cereus/Nextera_2x300/Bcereus_S1_L001_R2_001.fastq.gz -o MyMetagenome4
+~/tools/SPAdes/bin/spades.py --pe1-1 /Johnny/data/input/Bacteria/R.sphaeroides/MiSeq/full/raw/SRR522246_1.fastq.gz --pe1-2 /Johnny/data/input/Bacteria/R.sphaeroides/MiSeq/full/raw/SRR522246_2.fastq.gz --pe2-1 /Johnny/data/input/Bacteria/E.coli/K12/Illumina150_MC/MiSeq_Ecoli_MG1655_110721_PF_R1.fastq.gz --pe2-2 /Johnny/data/input/Bacteria/E.coli/K12/Illumina150_MC/MiSeq_Ecoli_MG1655_110721_PF_R2.fastq.gz --pe3-1 /Johnny/data/input/Bacteria/B.faecium/std_left.cor.fastq.gz --pe3-2 /Johnny/data/input/Bacteria/B.faecium/std_right.cor.fastq.gz --pe4-1 /Johnny/data/input/Bacteria/L.gasseri/std_left.cor.fastq.gz --pe4-2 /Johnny/data/input/Bacteria/L.gasseri/std_right.cor.fastq.gz --pe5-1 /Johnny/data/input/Bacteria/B.cereus/Nextera_2x300/Bcereus_S1_L001_R1_001.fastq.gz --pe5-2 /Johnny/data/input/Bacteria/B.cereus/Nextera_2x300/Bcereus_S1_L001_R2_001.fastq.gz -o MyMetagenome4
+
+
+
+~/tools/SPAdes/bin/spades.py --pe1-1 /Johnny/data/input/Bacteria/R.sphaeroides/MiSeq/full/raw/SRR522246_1.fastq.gz --pe1-2 /Johnny/data/input/Bacteria/R.sphaeroides/MiSeq/full/raw/SRR522246_2.fastq.gz --pe2-1 /Johnny/data/input/Bacteria/E.coli/K12/Illumina150_MC/MiSeq_Ecoli_MG1655_110721_PF_R1.fastq.gz --pe2-2 /Johnny/data/input/Bacteria/E.coli/K12/Illumina150_MC/MiSeq_Ecoli_MG1655_110721_PF_R2.fastq.gz --pe3-1 /Johnny/data/input/Bacteria/B.faecium/std_left.cor.fastq.gz --pe3-2 /Johnny/data/input/Bacteria/B.faecium/std_right.cor.fastq.gz -o /Molly/novitskayam/My_meta_1
+
+~/tools/SPAdes/bin/spades.py --pe1-1 /Johnny/data/input/Bacteria/B.faecium/std_left.cor.fastq.gz --pe1-2 /Johnny/data/input/Bacteria/B.faecium/std_right.cor.fastq.gz --pe2-1 /Johnny/data/input/Bacteria/R.sphaeroides/MiSeq/full/raw/SRR522246_1.fastq.gz --pe2-2 /Johnny/data/input/Bacteria/R.sphaeroides/MiSeq/full/raw/SRR522246_2.fastq.gz --pe3-1 /Johnny/data/input/Bacteria/R.sphaeroides/Nextera_2x300/Rhodo_S2_L001_R1_001.fastq.gz --pe3-2 /Johnny/data/input/Bacteria/R.sphaeroides/Nextera_2x300/Rhodo_S2_L001_R2_001.fastq.gz -o /Molly/novitskayam/My_meta_2
+
+~/tools/SPAdes/bin/spades.py --pe1-1 /Johnny/data/input/Bacteria/B.faecium/std_left.cor.fastq.gz --pe1-2 /Johnny/data/input/Bacteria/B.faecium/std_right.cor.fastq.gz --pe2-1 /Johnny/data/input/Bacteria/R.sphaeroides/MiSeq/full/raw/SRR522246_1.fastq.gz --pe2-2 /Johnny/data/input/Bacteria/R.sphaeroides/MiSeq/full/raw/SRR522246_2.fastq.gz -o /Molly/novitskayam/My_meta_3
+
+~/tools/SPAdes/bin/spades.py --pe1-1 /Johnny/data/input/Bacteria/E.coli/K12/Illumina150_MC/MiSeq_Ecoli_MG1655_110721_PF_R1.fastq.gz --pe1-2 /Johnny/data/input/Bacteria/E.coli/K12/Illumina150_MC/MiSeq_Ecoli_MG1655_110721_PF_R2.fastq.gz --pe2-1 /Johnny/data/input/Bacteria/L.gasseri/std_left.cor.fastq.gz --pe2-2 /Johnny/data/input/Bacteria/L.gasseri/std_right.cor.fastq.gz --pe3-1 /Johnny/data/input/Bacteria/B.cereus/Nextera_2x300/Bcereus_S1_L001_R1_001.fastq.gz --pe3-2 /Johnny/data/input/Bacteria/B.cereus/Nextera_2x300/Bcereus_S1_L001_R2_001.fastq.gz -o /Molly/novitskayam/My_meta_4
+
+~/tools/SPAdes/bin/spades.py --pe1-1 /Johnny/data/input/Bacteria/L.gasseri/std_left.cor.fastq.gz --pe1-2 /Johnny/data/input/Bacteria/L.gasseri/std_right.cor.fastq.gz --pe2-1 /Johnny/data/input/Bacteria/B.cereus/Nextera_2x300/Bcereus_S1_L001_R1_001.fastq.gz --pe2-2 /Johnny/data/input/Bacteria/B.cereus/Nextera_2x300/Bcereus_S1_L001_R2_001.fastq.gz -o /Molly/novitskayam/My_meta_5
+_________________________________
+
+cd ~/tools
+cd Gr*
+grinder -reference_file /Molly/novitskayam/sim4/sim4_ref.fasta -base_name sim4 -output_dir /Molly/novitskayam/sim4 -profile_file /Molly/novitskayam/pr_grinder.txt
+
+cd /Molly/no*
+cd sim4
+~/tools/SPAdes/bin/spades.py --12 sim4-reads.fastq -o /Molly/novitskayam/sim4/assembly
+metaquast assembly/contigs.fasta -R sim4.fasta -o quast
+cd ~
+
+
+head --lines=-4 sim4-reads.fastq > sim4-reads2.fastq
