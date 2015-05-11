@@ -1,15 +1,3 @@
-plot_rainbow_coverage_with_point <- function(cur_data) {
-  
-  cur_pca <- PCA(new[,1:136], scale.unit=TRUE, ncp=2, graph = F, ind.sup=c(27804))
-  
-  coord <- temp_pca$ind$coord[,c(1,2)]
-  coord <- as.data.frame(coord)
-  
-  png(filename="contig_on_pc.png", width=600, height=450)
-  plot(coord$Dim.1, coord$Dim.2, pch=20)
-  points(temp_pca$ind.sup$coord[1], temp_pca$ind.sup$coord[2], col="red", pch=20, cex=2)
-  dev.off()
-}
 
 
 
@@ -86,4 +74,37 @@ plot_spca_penalties <- function(cur_data, save_flag=F) {
 
 my_data$bastimolide$spca_penalties$l1_2 <- c(0.60905297, 0.51026312, 0.46072545, 0.15225548, 0.06465068, 0.17959345, 0.18049806, 0.17855573)
 
+______________________________________________
+# Multidimensional scaling
+plot_MDS <- function(cur_data, name="", dist_type="euclidean") {
+  
+  d <- dist(cur_data$tetra_nucl, method=dist_type)
+  fit <- cmdscale(d, k=2)
+  
+  df_to_draw <- data.frame(coordinate_1=fit[,1],
+                           coordinate_2=fit[,2],
+                           organism=cur_data$organism)
+  
+  qplot(coordinate_1, coordinate_2, data = df_to_draw, colour=organism)
+  
+  ggsave(filename=paste("MDS_", name, ".png", sep=""), 
+         width=5, height=4.5)
+}
 
+# Multidimensional scaling in 3D
+plot_MDS_3D <- function(cur_data, name="", dist_type="euclidean") {
+  
+  d <- dist(cur_data$tetra_nucl, method=dist_type)
+  fit <- cmdscale(d, k=3)
+  
+  df_to_draw <- data.frame(coordinate_1=fit[,1],
+                           coordinate_2=fit[,2],
+                           coordinate_3=fit[,3],          
+                           organism=cur_data$organism)
+  
+  png(filename=paste("MDS_", name, ".png", sep=""), 
+      width=600, height=450)
+  scatterplot3d(df_to_draw$coordinate_1, df_to_draw$coordinate_2, df_to_draw$coordinate_3,
+                pch=20, color=as.numeric(df_to_draw$organism))
+  dev.off()
+}

@@ -72,3 +72,17 @@ cd ~
 
 
 head --lines=-4 sim4-reads.fastq > sim4-reads2.fastq
+
+
+______________________________________
+
+cd quast
+for d in */ ; do
+    IFS='_' read -a arr <<< "$d"
+    tr '\t' '\n' < $d/contigs_reports/alignments_contigs.tsv > $d/contigs_reports/alignments_contigs.txt
+	echo "$(tail -n +2 $d/contigs_reports/alignments_contigs.txt)" > $d/contigs_reports/alignments_contigs.txt
+	python ~/my_scripts/python_scripts/filter_contigs.py ../assembly/contigs.fasta $d/contigs_reports/alignments_contigs.txt ${arr[2]}.fasta
+	python ~/my_scripts/python_scripts/add_names.py ${arr[2]}.fasta ${arr[2]}
+done
+cat *.fasta > contigs_with_names.fasta
+cd ~
